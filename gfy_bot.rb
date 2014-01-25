@@ -143,8 +143,17 @@ class GfyBot
 	# Extract array of links in a comment/self-post/thread
 	# Returns an array of GIF links
 	def gifLinkExtract(links)
-		# Only return links which end in .gif and do not contain gfycat.com
-		links.select {|link| link.downcase.include?('.gif') && link.include?('gfycat.com')==false }
+		# Only return links which end in .gif or are vines and do not contain gfycat.com
+		filtered_links = links.select {|link| (link.downcase.include?('.gif') || link.downcase.include?('vine.co')) && link.include?('gfycat.com')==false }
+		
+		# Replace vine urls with their .mp4 url
+		filtered_links.map {|link| link.downcase.include?('vine.co') ? extractVineUrl(link) : link}
+	end
+
+	# Extracts the .mp4 URL of a vine video
+	def extractVineUrl(vineUrl)
+		doc = Nokogiri::HTML(HTTParty.get(vineUrl))
+		doc.at_css("video source").attr(:src).split('?')[0]		
 	end
 
 	# Accepts unique gfycat name and returns a complete URL.
